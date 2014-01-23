@@ -1,0 +1,18 @@
+{
+  "name": "oracle_r12_parser",
+  "version": "0.0.1",
+  "description": "Pre-compilation of Oracle R-12 upgrade documentation",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"No response.\" && exit 1"
+  },
+  "author": "r0610205",
+  "license": "MIT",
+  "dependencies": {
+    "underscore": "*",
+    "async": "*",
+    "csv": "*"
+    "optimist": "*",
+    "cheerio": "*"
+  }
+}
