@@ -16,7 +16,8 @@ Use node.js to run:
 
     node index -f /path/to/folder/with/oracle/files
 
-Or
+Or as alternative:
+
     coffee index.coffee -f /path/to/folder/with/oracle/files
 
 Modification
