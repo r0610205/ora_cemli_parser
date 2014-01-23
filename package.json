@@ -1,7 +1,7 @@
 {
-  "name": "oracle_r12_parser",
+  "name": "ora_cemli_parser",
   "version": "0.0.1",
-  "description": "Pre-compilation of Oracle R-12 upgrade documentation",
+  "description": "Pre-compilatior for CEMLI scanner",
   "main": "index.js",
   "scripts": {
     "test": "echo \"No response.\" && exit 1"
@@ -11,7 +11,7 @@
   "dependencies": {
     "underscore": "*",
     "async": "*",
-    "csv": "*"
+    "csv": "*",
     "optimist": "*",
     "cheerio": "*"
   }
