@@ -1,6 +1,6 @@
 Pre-compilator for CEMLI scanner
 =============
-  Parses files with provided by Oracle and compiles output to be used by scanner.
+  Parses files provided by Oracle and compiles output for CEMLI scanner.
 
 Installation
 -----------
