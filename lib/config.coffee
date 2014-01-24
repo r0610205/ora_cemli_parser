@@ -6,15 +6,20 @@ messages = require './messages'
 # parser configuration
 module.exports =
 
+  # List of columns to print as table header. 
+  # Order of columns for CSV files specified in 
+  # 'defaultResult' function bellow.
   exportColumns: [
     'PRODUCT'
     'OBJECT_TYPE'
     'OBJECT_NAME'
+    'IMPACT'
     'ATTRIBUTE_NAME'
     'DIFFERENCE'
     'COMMENT'
     'SOURCE'
   ]
+
   allow:     
     changes: [
       {
@@ -27,6 +32,8 @@ module.exports =
       }
     ]
 
+  # Templates to ignore changes if a specified column (e.g. ObjectType) 
+  # matches one of the provided patterns
   ignore:
     objectType: [
       'indexes'
@@ -38,6 +45,8 @@ module.exports =
       'click here'
     ]
 
+  # List of parsers to apply to table cell
+  # Available parsers can be found under #2 in Parsers Definitions
   changeTestPatterns: [
     'procFuncArg'
     'procFuncType'
@@ -50,9 +59,33 @@ module.exports =
     'objectRemoved'
   ]
 
+
+  impact: (data) ->
+
+    switch data.change 
+      when messages.objectRemoved
+        if !data.attribute && !data.objectType.match(/package/i)
+          data.impact = 3
+        else
+          data.impact = 2
+      when messages.logicChange
+        data.impact = 3
+      when messages.attributeChange
+        data.impact = 4
+
+    data
+
   regex:
+    #PARSERS
+    #---------------------------------------------------------------------------
+    #If you need to 
+
+    # 1. Files Detector
     files: 
       pattern: ".*_diff\\.html" 
+
+    # 2. Parsers for changes listed in table cells
+    ############################################################################
 
     commonChanges:
       # other detectable changes: order_flag|initial_extent|max_value
@@ -116,6 +149,16 @@ module.exports =
         desc: 'arg:' + RegExp.$3 + '-' + RegExp.$4
         attribute: RegExp.$2
 
+    preCompile:
+      pattern: "(?!.*col-SET_OF_BOOKS_ID)(?=col-LEDGER_ID)"
+      parse: (source) ->
+        {desc: messages.ledgerComment, change: messages.logicChange}
+
+    # 3. Parsers to detect module information from file
+    # These parsers use jQuery analog 
+    # to extract info from HTML file using 'data' functions
+    ############################################################################
+
     module:
       data: (source) ->
         source('p').first().text()
@@ -132,6 +175,10 @@ module.exports =
       pattern: ".*difference.*between.*(\\d{2}\\.\\d{1,2}\\.\\d{1,2}).*and.*(\\d{2}\\.\\d{1,2}\\.\\d{1,2}).*"      
       parse: ->
         {to: RegExp.$1, from: RegExp.$2}
+
+    # 4. Main parser to run all the other parsers
+    # In the best case scenario shouldn't be modified
+    ############################################################################
 
     changes:
       data: (source) ->
@@ -150,6 +197,23 @@ module.exports =
             objectName = tds.first().text()
             sourceCode = tds.last().text()
 
+            defaultResult = (description, comment) ->
+              objectType: objectType
+              objectName: objectName
+              impact: null                
+              attribute: null
+              change: comment
+              desc: description
+              source: ''#sourceCode
+
+            # Detection of changes based on the entire cell data
+            preCompileData =  utils.testRegex(sourceCode, self.regex.preCompile)
+            if preCompileData.detected
+              result = _.union result, self.impact(defaultResult(preCompileData.desc, preCompileData.change))
+
+            # Assumption: TD cell with changes divided to section with DIV tags
+            # Each DIV tag content separated with BR tags
+
             tds.last().find('div').each (divIndex, div) ->
               listOfChanges = _.without String(source(div).html()).split('<br>'), ''
 
@@ -157,21 +221,11 @@ module.exports =
               changeInfo    = utils.synonym(change, self.allow.changes)
 
               return unless utils.testPatterns(change, _.map(self.allow.changes, (el)->el.pattern))
-
               
-              listOfChanges =  _.rest(listOfChanges)
-
-              defaultResult = (description) ->
-                objectType: objectType
-                objectName: objectName
-                attribute: null
-                change: changeInfo
-                desc: description
-                source: sourceCode
-                
+              listOfChanges =  _.rest(listOfChanges)                
 
               if _.isEmpty listOfChanges
-                changes = [defaultResult(changeInfo)]
+                changes = [self.impact(defaultResult(change, changeInfo))]
               else
                 changes = []
               
@@ -186,9 +240,7 @@ module.exports =
                   changeData = utils.testRegex(desc, self.regex[pattern])                  
                   continue unless changeData.detected
 
-                  #console.log desc, pattern
-
-                  coreData = defaultResult(changeInfo) 
+                  coreData = self.impact(defaultResult(change, changeInfo)) 
                   attr = changeData.attribute
 
                   if changeData.attribute

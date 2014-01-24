@@ -6,10 +6,11 @@ module.exports =
     result = text
     _.each lookup, (elem) ->
       if text.match RegExp(elem.pattern, 'gim')
-        result = elem.synonym
+        result = elem.synonym || text
 
     result
 
+  # True if at least on pattern from the array matches the text
   testPatterns: (text, patterns) ->
     result = false
     _.each _.toArray(patterns), (elem) ->

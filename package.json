@@ -6,12 +6,17 @@
   "scripts": {
     "test": "echo \"No response.\" && exit 1"
   },
+  "repository" :{ 
+    "type" : "git",
+    "url" : "http://github.com/r0610205/ora_cemli_parser"
+  },
   "author": "r0610205",
   "license": "MIT",
   "dependencies": {
     "underscore": "*",
     "async": "*",
     "csv": "*",
+    "coffee-script": "*",
     "optimist": "*",
     "cheerio": "*"
   }

@@ -25,7 +25,7 @@ unless fs.existsSync(path)
   console.log messages.pathDoesNotExist
 else
 
-  # DEBUG with -d. Comparison with previously obtained results.
+  # DEBUG FLOW (-d option). Comparison with previously obtained results.
   # Assumption: there are only two result files in the directory: old and new
   if argv.d
     results = []
@@ -33,7 +33,7 @@ else
       async.each files, (filename, callback) ->
         if filename.match(/.*result.*\.csv$/i)
           csv()
-            .from.path([path, filename].join('/'), { delimiter: ',', escape: '"' })
+            .from.path [path, filename].join('/'), {delimiter: ',', escape: '"'}
             .to.array (data) ->
 
               groupData = _.countBy _.rest(data), (el) -> el[0]
@@ -57,6 +57,9 @@ else
           console.log result
 
     return
+
+  # MAIN FLOW
+  ############################################################################## 
 
   results = {}
 
@@ -85,11 +88,16 @@ else
       else
         
         for version, changes of results
-          console.log messages.parsingComplete
-            .replace("$0", changes.length)
-            .replace("$1", version)
-            .replace("$2", process.hrtime(start)[0])
-          csv().from(changes).to path + '/results_' + version + '.csv'
+
+          newFile = path + '/results_' + version + '.csv'
+          csv().from(changes).to.path(newFile).on 'close', -> 
+            fs.stat newFile, (err, stat) ->
+              console.log messages.parsingComplete
+                .replace("$0", changes.length)
+                .replace("$1", version)
+                .replace("$2", process.hrtime(start)[0])
+                .replace("$3", (stat.size / 1000000.0).toFixed(2) )
+          
 
         
 

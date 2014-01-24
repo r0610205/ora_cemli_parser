@@ -35,7 +35,7 @@
             return csv().from.path([path, filename].join('/'), {
               delimiter: ',',
               escape: '"'
-            }).to.array(function(data) {
+            }.to.array(function(data) {
               var groupData, key, result, sortedKeys, _i, _len;
               groupData = _.countBy(_.rest(data), function(el) {
                 return el[0];
@@ -52,7 +52,7 @@
               }
               results.push(result);
               return callback();
-            });
+            }));
           } else {
             return callback();
           }
@@ -101,15 +101,19 @@
           return callback();
         }
       }, function() {
-        var changes, version, _results;
+        var changes, newFile, version, _results;
         if (_.isEmpty(results)) {
           return console.log(messages.noFiles);
         } else {
           _results = [];
           for (version in results) {
             changes = results[version];
-            console.log(messages.parsingComplete.replace("$0", changes.length).replace("$1", version).replace("$2", process.hrtime(start)[0]));
-            _results.push(csv().from(changes).to(path + '/results_' + version + '.csv'));
+            newFile = path + '/results_' + version + '.csv';
+            _results.push(csv().from(changes).to.path(newFile).on('close', function() {
+              return fs.stat(newFile, function(err, stat) {
+                return console.log(messages.parsingComplete.replace("$0", changes.length).replace("$1", version).replace("$2", process.hrtime(start)[0]).replace("$3", (stat.size / 1000000.0).toFixed(2)));
+              });
+            }));
           }
           return _results;
         }
