@@ -29,3 +29,7 @@ Results
   * benchmarks
   * archive of results obtained with current version of scanner
   * archive of results obtainer with original version of scanner (1C)
+
+TODO
+-----------
+ Grunt task to compile all `.coffee` files into one single JavaScript to run
